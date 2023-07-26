@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 
 import {
   Text,
-  StyleSheet,
   View,
   ImageBackground,
   Image,
@@ -16,13 +15,6 @@ import {
   Alert,
 } from "react-native";
 
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-
-import { auth } from "../../Firebase/config";
-
-// import { collection, addDoc } from "firebase/firestore";
-// import { db } from "../../config"; Змінити шлях
-
 import LogoImage from "../../../assets/PhotoBg.png";
 import PlusIcon from "../../../assets/add.png";
 
@@ -32,10 +24,14 @@ import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 import styles from "./RegistrationStyles";
 
 import { registerUser } from "../../redux/api-operations";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { Loader } from "../../Loader/Loader";
 
 const RegistrationScreen = ({ navigation }) => {
   const dispatch = useDispatch();
+
+  const isRefreshing = useSelector((state) => state.auth.isRefreshing);
+  console.log(isRefreshing);
 
   const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
@@ -137,7 +133,9 @@ const RegistrationScreen = ({ navigation }) => {
     setPasswordVisibility(!isPasswordVisible);
   };
 
-  return (
+  return isRefreshing ? (
+    <Loader />
+  ) : (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}

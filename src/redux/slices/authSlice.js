@@ -15,11 +15,19 @@ export const authSlice = createSlice({
       state.user.email = action.payload.email;
       state.token = action.payload.tokenId;
       state.isLogged = true;
+      state.isRefreshing = false;
     }),
+      builder.addCase(registerUser.pending, (state) => {
+        state.isRefreshing = true;
+      }),
       builder.addCase(loginUser.fulfilled, (state, action) => {
         state.user.email = action.payload.email;
         state.token = action.payload.tokenId;
         state.isLogged = true;
+        state.isRefreshing = false;
+      }),
+      builder.addCase(loginUser.pending, (state) => {
+        state.isRefreshing = true;
       }),
       builder.addCase(logOutUser.fulfilled, (state) => {
         state.isLogged = false;

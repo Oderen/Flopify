@@ -34,11 +34,6 @@ export const registerUser = createAsyncThunk("auth/register", async (data) => {
       tokenId,
     };
 
-    Alert.alert(
-      "Credentials",
-      `Name: ${login.trim()} \n Email: ${email} \n Password: ${password}`
-    );
-
     data.navigation.navigate("Home");
 
     return userData;
