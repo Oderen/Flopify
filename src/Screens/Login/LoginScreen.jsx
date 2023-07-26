@@ -16,7 +16,12 @@ import {
 } from "react-native";
 import LogoImage from "../../../assets/PhotoBg.png";
 
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../redux/api-operations";
+
 const LoginScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setPasswordVisibility] = useState(false);
@@ -47,15 +52,19 @@ const LoginScreen = ({ navigation }) => {
       return Alert.alert("Please write your email");
     }
 
-    if (password === "") {
-      return Alert.alert("Please write longer password");
+    if (password.length <= 5) {
+      return Alert.alert("Password must be 6 characterі long.");
     }
 
-    Alert.alert("Credentials", `Email: ${email}, Password: ${password}`);
-    console.log("Credentials", `Email: ${email}, Password: ${password}`);
+    const trimmedCredentials = {
+      email: email.trim(),
+      password: password.trim(),
+    };
+
+    dispatch(loginUser({ userCredentials: trimmedCredentials, navigation }));
+
     setEmail("");
     setPassword("");
-    navigation.navigate("Home");
   };
 
   const showPassword = () => {

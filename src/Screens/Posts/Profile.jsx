@@ -33,6 +33,10 @@ import ForestImage from "../../../assets/Rectangle23.png";
 import sunSet from "../../../assets/sun-set.png";
 import home from "../../../assets/Home.png";
 
+import { useSelector } from "react-redux";
+import { logOutUser } from "../../redux/api-operations";
+import { useDispatch } from "react-redux";
+
 const Item = ({ title, photo, location, navigation }) => {
   const goToComments = () => {
     navigation.navigate("Comments");
@@ -199,15 +203,19 @@ const DATA = [
 ];
 
 const Profile = ({ navigation }) => {
+  const dispatch = useDispatch();
   const [changeButton, setChangeButton] = useState(true);
+
+  const login = useSelector((state) => state.auth.user.login);
 
   const toggleButton = () => {
     setChangeButton(!changeButton);
   };
 
   const profileLogOut = () => {
-    navigation.navigate("Логін");
+    dispatch(logOutUser(navigation));
   };
+
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -275,7 +283,7 @@ const Profile = ({ navigation }) => {
               marginTop: 80,
             }}
           >
-            Natali Romanova
+            {login}
           </Text>
           <FlatList
             style={{ marginTop: 32, marginBottom: 43 }}

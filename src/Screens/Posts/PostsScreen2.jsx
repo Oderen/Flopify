@@ -19,6 +19,9 @@ import ForestImage from "../../../assets/Rectangle23.png";
 import sunSet from "../../../assets/sun-set.png";
 import home from "../../../assets/Home.png";
 
+import { useDispatch } from "react-redux";
+import { logOutUser } from "../../redux/api-operations";
+
 const DATA = [
   {
     id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
@@ -155,8 +158,10 @@ const Item = ({ title, photo, location, navigation }) => {
 };
 
 const PostsScreen2 = ({ navigation }) => {
+  const dispatch = useDispatch();
+
   const logOut = () => {
-    navigation.navigate("Логін");
+    dispatch(logOutUser(navigation));
   };
 
   return (

@@ -1,7 +1,5 @@
 import { View, StyleSheet, Text } from "react-native";
 
-// import PostsLowerBar from "./LowerBar/PostsLowerBar";
-// import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 import LogOut from "../../../assets/log-out.png";
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -14,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 const Tabs = createBottomTabNavigator();
 
-const PostsScreen = ({}) => {
+const PostsScreen = () => {
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({

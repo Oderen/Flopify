@@ -16,6 +16,8 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import store, { persistor } from "./src/redux/store";
 
+import { useSelector } from "react-redux";
+
 const MainStack = createStackNavigator();
 
 export default function App() {
@@ -28,11 +30,14 @@ export default function App() {
     return null;
   }
 
+  // const isUserLogIn = useSelector((state) => state.auth.isLogged);
+  // console.log("isUserLogIn", isUserLogIn);
+
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <NavigationContainer>
-          <MainStack.Navigator initialRouteName="Home">
+          <MainStack.Navigator initialRouteName="Реєстрація">
             <MainStack.Screen
               name="Реєстрація"
               component={RegistrationScreen}

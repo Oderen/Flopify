@@ -16,16 +16,12 @@ import {
   Alert,
 } from "react-native";
 
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  updateProfile,
-} from "firebase/auth";
-import { auth } from "../../config";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../config";
+import { auth } from "../../Firebase/config";
+
+// import { collection, addDoc } from "firebase/firestore";
+// import { db } from "../../config"; Змінити шлях
 
 import LogoImage from "../../../assets/PhotoBg.png";
 import PlusIcon from "../../../assets/add.png";
@@ -33,7 +29,14 @@ import PlusIcon from "../../../assets/add.png";
 import CloseButton from "../../../assets/closeButton.png";
 import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 
+import styles from "./RegistrationStyles";
+
+import { registerUser } from "../../redux/api-operations";
+import { useDispatch } from "react-redux";
+
 const RegistrationScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+
   const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,19 +65,7 @@ const RegistrationScreen = ({ navigation }) => {
     };
   }, []);
 
-  // Add data
-  const writeDataToFirestore = async (userInfo) => {
-    console.log("userInfo", userInfo);
-    try {
-      const docRef = await addDoc(collection(db, "users"), userInfo);
-      console.log("Document written with ID: ", docRef.id);
-    } catch (e) {
-      console.error("Error adding document: ", e);
-      throw e;
-    }
-  };
-
-  const onRegister = () => {
+  const registerDB = () => {
     if (login === "") {
       return Alert.alert("Please write your login");
     }
@@ -83,57 +74,21 @@ const RegistrationScreen = ({ navigation }) => {
       return Alert.alert("Please write your email");
     }
 
-    if (password === "") {
-      return Alert.alert("Please write longer password");
+    if (password.length <= 5) {
+      return Alert.alert("Password must be 6 characterі long.");
     }
 
-    Alert.alert(
-      "Credentials",
-      `Name: ${login}, Email: ${email}, Password: ${password}`
-    );
-    console.log(
-      "Credentials",
-      `Name: ${login}, Email: ${email}, Password: ${password}`
-    );
+    const trimmedCredentials = {
+      login: login.trim(),
+      email: email.trim(),
+      password: password.trim(),
+    };
+
+    dispatch(registerUser({ userCredentials: trimmedCredentials, navigation }));
+
     setLogin("");
     setEmail("");
     setPassword("");
-    navigation.navigate("Home");
-  };
-
-  const registerDB = async () => {
-    try {
-      if (login === "") {
-        return Alert.alert("Please write your login");
-      }
-
-      if (email === "") {
-        return Alert.alert("Please write your email");
-      }
-
-      if (password === "") {
-        return Alert.alert("Please write longer password");
-      }
-
-      Alert.alert(
-        "Credentials",
-        `Name: ${login}, Email: ${email}, Password: ${password}`
-      );
-      console.log(
-        "Credentials",
-        `Name: ${login}, Email: ${email}, Password: ${password}`
-      );
-      // register
-      await createUserWithEmailAndPassword(auth, email, password);
-      // add data
-      const userInfo = {
-        email,
-        password,
-      };
-      await writeDataToFirestore(userInfo);
-    } catch (error) {
-      throw error;
-    }
   };
 
   const onKeyboardDidShow = () => {
@@ -181,64 +136,6 @@ const RegistrationScreen = ({ navigation }) => {
   const showPassword = () => {
     setPasswordVisibility(!isPasswordVisible);
   };
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    input: {
-      height: 50,
-      width: "90%",
-      borderWidth: 1,
-      padding: 16,
-
-      fontSize: 16,
-      fontFamily: "Roboto",
-      borderRadius: 10,
-      backgroundColor: "rgba(246, 246, 246, 1)",
-      borderColor: "rgba(232, 232, 232, 1)",
-    },
-    inputFocused: {
-      backgroundColor: "rgba(255, 255, 255, 1)",
-      borderColor: "rgba(255, 108, 0, 1)",
-    },
-    appButtonContainer: {
-      width: "90%",
-      height: 50,
-
-      marginTop: 43,
-
-      justifyContent: "center",
-      textAlign: "center",
-
-      borderRadius: 100,
-
-      paddingTop: 16,
-      paddingBottom: 16,
-      paddingLeft: 32,
-      paddingRight: 32,
-
-      backgroundColor: "rgba(255, 108, 0, 1)",
-    },
-    appButtonText: {
-      color: "white",
-      fontSize: 16,
-      fontFamily: "Roboto",
-      textAlign: "center",
-    },
-    haveAccountText: {
-      color: "#1B4371",
-
-      fontSize: 16,
-      fontFamily: "Roboto",
-    },
-    formContainer: {
-      width: "100%",
-      marginTop: 16,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  });
 
   return (
     <KeyboardAvoidingView
