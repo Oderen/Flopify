@@ -1,7 +1,5 @@
 import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
 
-import TrashIcon from "../../../../assets/trash-2.png";
-
 const CreatePostLowerBar = () => {
   return (
     <View style={styles.lowerBar}>

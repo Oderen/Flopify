@@ -1,31 +1,18 @@
-import { ThreeDots } from "react-loader-spinner";
-
+import { StyleSheet } from "react-native";
+import AnimatedLoader from "react-native-animated-loader";
 export const Loader = () => {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-
-        width: "200px",
-        heigth: "200px",
-
-        marginTop: "150px",
-        marginLeft: "auto",
-        marginRight: "auto",
-      }}
-    >
-      <ThreeDots
-        width="120px"
-        heigth="120px"
-        radius="9"
-        color="tomato"
-        ariaLabel="three-dots-loading"
-        wrapperClassName=""
-        visible={true}
-      />
-    </div>
+    <AnimatedLoader
+      visible
+      overlayColor="rgba(255,255,255,0.75)"
+      animationStyle={styles.lottie}
+      speed={1}
+    ></AnimatedLoader>
   );
 };
-
-// export default Loader;
+const styles = StyleSheet.create({
+  lottie: {
+    width: 100,
+    height: 100,
+  },
+});

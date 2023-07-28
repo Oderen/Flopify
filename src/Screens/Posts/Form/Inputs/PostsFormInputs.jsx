@@ -11,42 +11,98 @@ import {
   Alert,
 } from "react-native";
 import MapPin from "../../../../../assets/map-pin.png";
+import TrashIcon from "../../../../../assets/trash-2.png";
+import * as Location from "expo-location";
+
+import { useDispatch } from "react-redux";
+import { addPost } from "../../../../redux/api-operations";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+// import RNFetchBlob from "rn-fetch-blob";
 
 const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
+  const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [locationInput, setlocationInput] = useState("");
   const [userLocation, setUserLocation] = useState(null);
 
-  const publishPost = () => {
-    if (name === "") {
-      Alert.alert("Please, fill the name field");
-      return;
+  async function getDownloadURL(storageRef) {
+    try {
+      console.log("Download URL:", storageRef._location.path_);
+    } catch (error) {
+      console.error("Error getting download URL:", error);
     }
-    if (!photo) {
-      Alert.alert("Please, take a photo");
-      return;
-    }
-    if (locationInput === "") {
-      Alert.alert("Please, fill the location field");
-      return;
-    }
+  }
 
-    Alert.alert("The post is published successfully");
-    async () => {
+  const publishPost = async () => {
+    try {
+      if (name === "") {
+        Alert.alert("Please, fill the name field");
+        return;
+      }
+      if (!photo) {
+        Alert.alert("Please, take a photo");
+        return;
+      }
+      if (locationInput === "") {
+        Alert.alert("Please, fill the location field");
+        return;
+      }
+
       let locationCoords = await Location.getCurrentPositionAsync({});
       const coords = {
         latitude: locationCoords.coords.latitude,
         longitude: locationCoords.coords.longitude,
-        // latitude: 49.59786378345425,
-        // longitude: 25.59472866019018,
       };
       setUserLocation(coords);
-    };
 
+      async function uploadFileToFirebaseStorage() {
+        try {
+          // Fetch the file as a Blob
+          const response = await fetch(photo);
+          const fileBlob = await response.blob();
+          console.log("fileBlob", fileBlob);
+
+          // Upload the file to Firebase Storage
+          const storage = getStorage();
+          const storageRef = ref(storage, fileBlob._data.name);
+
+          await uploadBytes(storageRef, fileBlob);
+          console.log("Uploaded a blob or file!");
+          await getDownloadURL(storageRef);
+          // Handle successful upload
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          // Handle error during upload
+        }
+      }
+
+      await uploadFileToFirebaseStorage();
+
+      // const response = await fetch(photo);
+      // const fileBlob = await response.blob();
+      // console.log("fileBlob", fileBlob);
+
+      dispatch(
+        addPost({
+          name,
+          locCoords: coords,
+          photo: fileBlob._data.name,
+          locationInput,
+        })
+      );
+
+      // clearInputs();
+      // return goToPostsScren();
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };
+
+  const clearInputs = () => {
     setName("");
     setlocationInput("");
     discardPhoto();
-    return goToPostsScren();
   };
   return (
     <KeyboardAvoidingView
@@ -68,7 +124,6 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
             },
           ]}
         />
-
         <View style={styles.secondInputContainer}>
           <Image style={styles.icon} source={MapPin} />
           <TextInput
@@ -79,7 +134,6 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
             style={[styles.input, { width: "90%" }]}
           />
         </View>
-
         <TouchableOpacity
           style={[
             styles.button,
@@ -99,6 +153,18 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
             Опублікувати
           </Text>
         </TouchableOpacity>
+
+        <View style={styles.lowerBar}>
+          <TouchableOpacity style={styles.trashButton} onPress={clearInputs}>
+            <Image
+              source={TrashIcon}
+              style={{
+                width: 24,
+                height: 24,
+              }}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -162,6 +228,22 @@ const styles = StyleSheet.create({
   },
   buttonActive__text: {
     color: "white",
+  },
+  lowerBar: {
+    marginTop: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  trashButton: {
+    width: 70,
+    height: 40,
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    backgroundColor: "#F6F6F6",
+
+    borderRadius: 20,
   },
 });
 

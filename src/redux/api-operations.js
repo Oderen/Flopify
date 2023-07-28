@@ -4,6 +4,8 @@ import { Alert } from "react-native";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 // firebase
 import { auth } from "../Firebase/config";
+import { db } from "../Firebase/config";
+import { addDoc, collection } from "firebase/firestore";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -59,17 +61,15 @@ export const loginUser = createAsyncThunk("auth/login", async (data) => {
 
     const user = await signInWithEmailAndPassword(auth, email, password);
 
+    const login = user._tokenResponse.displayName;
     const tokenId = user._tokenResponse.idToken;
 
     const userData = {
+      login,
       email,
       password,
       tokenId,
     };
-
-    console.log("Welcome");
-
-    Alert.alert("Credentials", `Email: ${email} \n Password: ${password}`);
 
     data.navigation.navigate("Home");
 
@@ -95,10 +95,25 @@ export const logOutUser = createAsyncThunk(
   async (navigation) => {
     try {
       await signOut(auth);
-      console.log("SignOut successful");
       navigation.navigate("Логін");
     } catch (error) {
       console.log(error);
+    }
+  }
+);
+
+export const addPost = createAsyncThunk(
+  "posts/add",
+
+  async (postData, { rejectWithValue }) => {
+    try {
+      const docRef = await addDoc(collection(db, "posts"), postData);
+      console.log("Document written with ID: ", docRef.id);
+
+      return postData;
+    } catch (error) {
+      console.error("Error adding document: ", e);
+      return rejectWithValue(error);
     }
   }
 );

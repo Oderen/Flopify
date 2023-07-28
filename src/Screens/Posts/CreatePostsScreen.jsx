@@ -13,20 +13,53 @@ import {
 import * as Location from "expo-location";
 
 import PostsFormInputs from "./Form/Inputs/PostsFormInputs";
-import CreatePostsLowerBar from "./LowerBar/CreatePostsLowerBar";
 
 import ArrowLeft from "../../../assets/arrow-left.png";
 import PhotoIcon2 from "../../../assets/photoIcon2.png";
 
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import { Loader } from "../../Loader/Loader";
 
 const CreatePostsScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [photo, setPhoto] = useState(null);
+
+  const isLoading = useSelector((state) => state.posts.isLoading);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      await MediaLibrary.requestPermissionsAsync();
+
+      setHasPermission(status === "granted");
+
+      let locationPermission =
+        await Location.requestForegroundPermissionsAsync();
+      if (locationPermission.status !== "granted") {
+        console.log("Permission to access location was denied");
+      }
+
+      setPhoto(null);
+    })();
+  }, []);
+
+  if (hasPermission === null) {
+    console.log("No permission");
+    return;
+  }
+  if (hasPermission === false) {
+    console.log("No permission");
+    return <Text>No access to camera</Text>;
+  }
+
+  const discardPhoto = () => {
+    setPhoto(null);
+  };
 
   const goBack = () => {
     navigation.goBack();
@@ -45,36 +78,9 @@ const CreatePostsScreen = ({ navigation }) => {
     return;
   };
 
-  const discardPhoto = () => {
-    setPhoto(null);
-  };
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      await MediaLibrary.requestPermissionsAsync();
-
-      setHasPermission(status === "granted");
-      setPhoto(null);
-
-      let locationPermission =
-        await Location.requestForegroundPermissionsAsync();
-      if (locationPermission.status !== "granted") {
-        console.log("Permission to access location was denied");
-      }
-    })();
-  }, []);
-
-  if (hasPermission === null) {
-    console.log("No permission");
-    return <View />;
-  }
-  if (hasPermission === false) {
-    console.log("No permission");
-    return <Text>No access to camera</Text>;
-  }
-
-  return (
+  return isLoading ? (
+    <Loader />
+  ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <SafeAreaView style={styles.container}>
         <View style={styles.upperBar}>
@@ -105,12 +111,11 @@ const CreatePostsScreen = ({ navigation }) => {
                 type={type}
                 ref={setCameraRef}
               >
-                {photo ? (
-                  <ImageBackground
-                    source={{ uri: photo }}
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                ) : null}
+                <ImageBackground
+                  source={{ uri: photo }}
+                  style={{ width: "100%", height: "100%" }}
+                />
+
                 <TouchableOpacity
                   style={{
                     position: "absolute",
@@ -163,7 +168,6 @@ const CreatePostsScreen = ({ navigation }) => {
             />
           </View>
         </View>
-        <CreatePostsLowerBar />
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );

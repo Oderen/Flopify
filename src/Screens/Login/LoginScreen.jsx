@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Text,
   StyleSheet,
@@ -16,11 +16,15 @@ import {
 } from "react-native";
 import LogoImage from "../../../assets/PhotoBg.png";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../redux/api-operations";
+import { Loader } from "../../Loader/Loader";
 
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
+
+  const isRefreshing = useSelector((state) => state.auth.isRefreshing);
+  const isLogged = useSelector((state) => state.auth.isLogged);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,23 +33,11 @@ const LoginScreen = ({ navigation }) => {
   const [input1Focused, setInput1Focused] = useState(false);
   const [input2Focused, setInput2Focused] = useState(false);
 
-  const handleInput1Focus = () => {
-    setInput1Focused(true);
-    setInput2Focused(false);
-  };
-
-  const handleInput2Focus = () => {
-    setInput1Focused(false);
-    setInput2Focused(true);
-  };
-
-  const handleInput1Blur = () => {
-    setInput1Focused(false);
-  };
-
-  const handleInput2Blur = () => {
-    setInput2Focused(false);
-  };
+  useEffect(() => {
+    if (isLogged) {
+      navigation.navigate("Home");
+    }
+  }, []);
 
   const onLogin = () => {
     if (email === "") {
@@ -67,11 +59,31 @@ const LoginScreen = ({ navigation }) => {
     setPassword("");
   };
 
+  const handleInput1Focus = () => {
+    setInput1Focused(true);
+    setInput2Focused(false);
+  };
+
+  const handleInput2Focus = () => {
+    setInput1Focused(false);
+    setInput2Focused(true);
+  };
+
+  const handleInput1Blur = () => {
+    setInput1Focused(false);
+  };
+
+  const handleInput2Blur = () => {
+    setInput2Focused(false);
+  };
+
   const showPassword = () => {
     setPasswordVisibility(!isPasswordVisible);
   };
 
-  return (
+  return isRefreshing ? (
+    <Loader />
+  ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}

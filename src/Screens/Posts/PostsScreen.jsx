@@ -1,7 +1,4 @@
-import { View, StyleSheet, Text } from "react-native";
-
-import LogOut from "../../../assets/log-out.png";
-
+import { View, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import PostsScreen2 from "./PostsScreen2";
@@ -9,10 +6,19 @@ import CreatePostsScreen from "./CreatePostsScreen";
 import Profile from "./Profile";
 
 import { Ionicons } from "@expo/vector-icons";
+// import { useEffect, useSelector } from "react";
 
 const Tabs = createBottomTabNavigator();
 
-const PostsScreen = () => {
+const PostsScreen = ({ navigation }) => {
+  // const isLogged = useSelector((state) => state.auth.isLogged);
+
+  // useEffect(() => {
+  //   if (isLogged) {
+  //     navigation.navigate("Логін");
+  //   }
+  // });
+
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({

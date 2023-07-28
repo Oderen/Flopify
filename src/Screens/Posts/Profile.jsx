@@ -7,15 +7,9 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  Alert,
 } from "react-native";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import LogoImage from "../../../assets/PhotoBg.png";
 import PlusIcon from "../../../assets/add.png";
@@ -29,15 +23,20 @@ import MessageIcon from "../../../assets/message-circle.png";
 import MapPin from "../../../assets/map-pin.png";
 import thumbsUp from "../../../assets/thumbs-up.png";
 
-import ForestImage from "../../../assets/Rectangle23.png";
-import sunSet from "../../../assets/sun-set.png";
-import home from "../../../assets/Home.png";
+// import ForestImage from "../../../assets/Rectangle23.png";
+// import sunSet from "../../../assets/sun-set.png";
+// import home from "../../../assets/Home.png";
 
 import { useSelector } from "react-redux";
 import { logOutUser } from "../../redux/api-operations";
 import { useDispatch } from "react-redux";
 
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../Firebase/config";
+
 const Item = ({ title, photo, location, navigation }) => {
+  // console.log("photo", photo);
+
   const goToComments = () => {
     navigation.navigate("Comments");
   };
@@ -57,7 +56,7 @@ const Item = ({ title, photo, location, navigation }) => {
       >
         <View style={{ width: 370, height: 240 }}>
           <Image
-            source={photo}
+            source={{ uri: photo }}
             style={{ width: "100%", height: "100%", borderRadius: 8 }}
           />
           <Text
@@ -181,35 +180,43 @@ const Item = ({ title, photo, location, navigation }) => {
   );
 };
 
-const DATA = [
-  {
-    id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-    title: "Ліс",
-    photo: ForestImage,
-    location: "Ukraine",
-  },
-  {
-    id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-    title: "Захід на Чорному морі",
-    photo: sunSet,
-    location: "Ukraine",
-  },
-  {
-    id: "58694a0f-3da1-471f-bd96-145571e29d72",
-    title: "Старий будиночок у Венеції",
-    photo: home,
-    location: "Italy",
-  },
-];
-
 const Profile = ({ navigation }) => {
   const dispatch = useDispatch();
   const [changeButton, setChangeButton] = useState(true);
 
   const login = useSelector((state) => state.auth.user.login);
+  const [posts, setPosts] = useState([]);
+
+  const getDataFromFirestore = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "posts"));
+
+      const dataArr = [];
+      snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
+
+      return dataArr;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const data = await getDataFromFirestore();
+  //     setPosts(data);
+  //   };
+  //   fetchData();
+  // }, []);
+
+  const fetchData = async () => {
+    const data = await getDataFromFirestore();
+    setPosts(data);
+  };
 
   const toggleButton = () => {
-    setChangeButton(!changeButton);
+    fetchData();
+    // setChangeButton(!changeButton);
   };
 
   const profileLogOut = () => {
@@ -287,13 +294,13 @@ const Profile = ({ navigation }) => {
           </Text>
           <FlatList
             style={{ marginTop: 32, marginBottom: 43 }}
-            data={DATA}
+            data={posts}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <Item
-                title={item.title}
-                photo={item.photo}
-                location={item.location}
+                title={item.data.name}
+                photo={item.data.photo}
+                location={item.data.locationInput}
                 navigation={navigation}
               />
             )}

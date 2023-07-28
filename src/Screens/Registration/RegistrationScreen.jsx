@@ -31,7 +31,7 @@ const RegistrationScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isRefreshing = useSelector((state) => state.auth.isRefreshing);
-  console.log(isRefreshing);
+  const isLogged = useSelector((state) => state.auth.isLogged);
 
   const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +46,11 @@ const RegistrationScreen = ({ navigation }) => {
   const [input3Focused, setInput3Focused] = useState(false);
 
   useEffect(() => {
+    if (isLogged) {
+      navigation.navigate("Home");
+      return;
+    }
+
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
       onKeyboardDidShow
@@ -61,7 +66,7 @@ const RegistrationScreen = ({ navigation }) => {
     };
   }, []);
 
-  const registerDB = () => {
+  const registerAccount = () => {
     if (login === "") {
       return Alert.alert("Please write your login");
     }
@@ -81,7 +86,6 @@ const RegistrationScreen = ({ navigation }) => {
     };
 
     dispatch(registerUser({ userCredentials: trimmedCredentials, navigation }));
-
     setLogin("");
     setEmail("");
     setPassword("");
@@ -263,7 +267,7 @@ const RegistrationScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.appButtonContainer}
-                  onPress={registerDB}
+                  onPress={registerAccount}
                 >
                   <Text style={styles.appButtonText}>Зареєструватися</Text>
                 </TouchableOpacity>
