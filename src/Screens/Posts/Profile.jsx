@@ -35,7 +35,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../Firebase/config";
 
 const Item = ({ title, photo, location, navigation }) => {
-  // console.log("photo", photo);
+  console.log("photo", photo);
 
   const goToComments = () => {
     navigation.navigate("Comments");
@@ -211,6 +211,7 @@ const Profile = ({ navigation }) => {
 
   const fetchData = async () => {
     const data = await getDataFromFirestore();
+    console.log("data", data);
     setPosts(data);
   };
 

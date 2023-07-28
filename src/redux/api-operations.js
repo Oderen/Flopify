@@ -106,6 +106,7 @@ export const addPost = createAsyncThunk(
   "posts/add",
 
   async (postData, { rejectWithValue }) => {
+    console.log("postData", postData);
     try {
       const docRef = await addDoc(collection(db, "posts"), postData);
       console.log("Document written with ID: ", docRef.id);

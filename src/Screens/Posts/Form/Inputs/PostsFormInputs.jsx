@@ -24,14 +24,21 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
   const [name, setName] = useState("");
   const [locationInput, setlocationInput] = useState("");
   const [userLocation, setUserLocation] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState("");
+  console.log("photoUrl"), photoUrl;
 
-  async function getDownloadURL(storageRef) {
+  const getPhotoUrl = async (storageRef) => {
     try {
-      console.log("Download URL:", storageRef._location.path_);
+      const url = await getDownloadURL(storageRef);
+      console.log("url", url);
+      setPhotoUrl(url);
+      return url;
+      // setPhotoUrl(url);
     } catch (error) {
-      console.error("Error getting download URL:", error);
+      console.log(error);
+      throw error;
     }
-  }
+  };
 
   const publishPost = async () => {
     try {
@@ -65,28 +72,25 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
           // Upload the file to Firebase Storage
           const storage = getStorage();
           const storageRef = ref(storage, fileBlob._data.name);
+          // console.log("storageRef", storageRef);
+          setPhotoUrl(storageRef);
 
           await uploadBytes(storageRef, fileBlob);
-          console.log("Uploaded a blob or file!");
-          await getDownloadURL(storageRef);
-          // Handle successful upload
+          console.log("Uploaded!");
+          await getPhotoUrl(storageRef);
         } catch (error) {
           console.error("Error uploading file:", error);
-          // Handle error during upload
+          throw error;
         }
       }
 
       await uploadFileToFirebaseStorage();
 
-      // const response = await fetch(photo);
-      // const fileBlob = await response.blob();
-      // console.log("fileBlob", fileBlob);
-
       dispatch(
         addPost({
           name,
           locCoords: coords,
-          photo: fileBlob._data.name,
+          photo: photoUrl,
           locationInput,
         })
       );
