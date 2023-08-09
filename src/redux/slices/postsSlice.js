@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { addPost } from "../api-operations";
-import { isLoaded } from "expo-font";
 
 export const postsSlice = createSlice({
   name: "posts",

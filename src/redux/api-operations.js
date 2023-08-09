@@ -84,9 +84,10 @@ export const loginUser = createAsyncThunk("auth/login", async (data) => {
       );
     } else if (error.code === "auth/invalid-email") {
       throw Alert.alert("Authintification error", "Invalid email");
+    } else if (error.code === "auth/user-not-found") {
+      throw Alert.alert("Authintification error", "User doesn't exist");
     }
-
-    throw Alert.alert(`Something went wrong /n Please try again`);
+    throw Alert.alert(`Something went wrong Please try again`);
   }
 });
 
@@ -109,11 +110,30 @@ export const addPost = createAsyncThunk(
     console.log("postData", postData);
     try {
       const docRef = await addDoc(collection(db, "posts"), postData);
-      console.log("Document written with ID: ", docRef.id);
 
       return postData;
     } catch (error) {
       console.error("Error adding document: ", e);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const redirectingUser = createAsyncThunk(
+  "auth/redirection",
+  async (data, { rejectWithValue }) => {
+    try {
+      console.log("credentials", data);
+      const { displayName, email, accessToken } = data.user;
+      data.navigation.navigate("Home");
+      const userData = {
+        displayName,
+        email,
+        accessToken,
+      };
+      return userData;
+    } catch (error) {
+      console.log(error);
       return rejectWithValue(error);
     }
   }

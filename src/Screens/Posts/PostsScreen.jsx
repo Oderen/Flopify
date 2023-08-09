@@ -6,19 +6,10 @@ import CreatePostsScreen from "./CreatePostsScreen";
 import Profile from "./Profile";
 
 import { Ionicons } from "@expo/vector-icons";
-// import { useEffect, useSelector } from "react";
 
 const Tabs = createBottomTabNavigator();
 
 const PostsScreen = ({ navigation }) => {
-  // const isLogged = useSelector((state) => state.auth.isLogged);
-
-  // useEffect(() => {
-  //   if (isLogged) {
-  //     navigation.navigate("Логін");
-  //   }
-  // });
-
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({

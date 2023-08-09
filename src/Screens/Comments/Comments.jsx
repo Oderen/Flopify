@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -18,6 +17,10 @@ import SunSetImage from "../../../assets/sun-set.png";
 import SendIcon from "../../../assets/send-icon.png";
 import AvatarIcon from "../../../assets/avatar.png";
 import ProfilePhoto from "../../../assets/ProfilePhoto.png";
+
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../Firebase/config";
+import { useEffect, useState } from "react";
 
 const DATA = [
   {
@@ -89,7 +92,37 @@ const Item = ({ message, photo, messageTime }) => {
 };
 
 const Comments = ({ navigation }) => {
-  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
+
+  const getDataFromFirestore = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "posts"));
+
+      const dataArr = [];
+      snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
+      // console.log("dataArr", dataArr);
+
+      return dataArr;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getDataFromFirestore();
+      console.log();
+      setComments(data);
+    };
+    fetchData();
+  }, []);
+
+  const sendComment = () => {
+    console.log("Comment is sent");
+  };
+
   const goBack = () => {
     navigation.navigate("Home");
   };
@@ -145,8 +178,8 @@ const Comments = ({ navigation }) => {
             <TextInput
               placeholder="Коментувати..."
               placeholderTextColor="rgba(189, 189, 189, 1)"
-              value={comment}
-              onChangeText={setComment}
+              value={commentText}
+              onChangeText={setCommentText}
               style={styles.input}
             />
             <TouchableOpacity
@@ -156,6 +189,7 @@ const Comments = ({ navigation }) => {
                 width: 34,
                 height: 34,
               }}
+              onPress={sendComment}
             >
               <Image
                 source={SendIcon}

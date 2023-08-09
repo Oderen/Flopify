@@ -23,10 +23,6 @@ import MessageIcon from "../../../assets/message-circle.png";
 import MapPin from "../../../assets/map-pin.png";
 import thumbsUp from "../../../assets/thumbs-up.png";
 
-// import ForestImage from "../../../assets/Rectangle23.png";
-// import sunSet from "../../../assets/sun-set.png";
-// import home from "../../../assets/Home.png";
-
 import { useSelector } from "react-redux";
 import { logOutUser } from "../../redux/api-operations";
 import { useDispatch } from "react-redux";
@@ -35,8 +31,6 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../Firebase/config";
 
 const Item = ({ title, photo, location, navigation }) => {
-  console.log("photo", photo);
-
   const goToComments = () => {
     navigation.navigate("Comments");
   };
@@ -187,12 +181,16 @@ const Profile = ({ navigation }) => {
   const login = useSelector((state) => state.auth.user.login);
   const [posts, setPosts] = useState([]);
 
+  const userData = useSelector((state) => state);
+  console.log("userData", userData);
+
   const getDataFromFirestore = async () => {
     try {
       const snapshot = await getDocs(collection(db, "posts"));
 
       const dataArr = [];
       snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
+      // console.log("dataArr", dataArr);
 
       return dataArr;
     } catch (error) {
@@ -201,23 +199,16 @@ const Profile = ({ navigation }) => {
     }
   };
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const data = await getDataFromFirestore();
-  //     setPosts(data);
-  //   };
-  //   fetchData();
-  // }, []);
-
-  const fetchData = async () => {
-    const data = await getDataFromFirestore();
-    console.log("data", data);
-    setPosts(data);
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getDataFromFirestore();
+      setPosts(data);
+    };
+    fetchData();
+  }, []);
 
   const toggleButton = () => {
-    fetchData();
-    // setChangeButton(!changeButton);
+    setChangeButton(!changeButton);
   };
 
   const profileLogOut = () => {

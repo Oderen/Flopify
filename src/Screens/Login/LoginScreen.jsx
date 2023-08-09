@@ -17,14 +17,14 @@ import {
 import LogoImage from "../../../assets/PhotoBg.png";
 
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../redux/api-operations";
+import { loginUser, redirectingUser } from "../../redux/api-operations";
 import { Loader } from "../../Loader/Loader";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isRefreshing = useSelector((state) => state.auth.isRefreshing);
-  const isLogged = useSelector((state) => state.auth.isLogged);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,10 +33,17 @@ const LoginScreen = ({ navigation }) => {
   const [input1Focused, setInput1Focused] = useState(false);
   const [input2Focused, setInput2Focused] = useState(false);
 
+  const auth = getAuth();
+
   useEffect(() => {
-    if (isLogged) {
-      navigation.navigate("Home");
-    }
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is already logged");
+        dispatch(redirectingUser({ navigation, user }));
+      } else {
+        console.log("User is not logged");
+      }
+    });
   }, []);
 
   const onLogin = () => {
@@ -45,7 +52,7 @@ const LoginScreen = ({ navigation }) => {
     }
 
     if (password.length <= 5) {
-      return Alert.alert("Password must be 6 characterі long.");
+      return Alert.alert("Password must be 6 characters long.");
     }
 
     const trimmedCredentials = {

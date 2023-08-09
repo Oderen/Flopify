@@ -17,23 +17,17 @@ import * as Location from "expo-location";
 import { useDispatch } from "react-redux";
 import { addPost } from "../../../../redux/api-operations";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-// import RNFetchBlob from "rn-fetch-blob";
 
 const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
   const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [locationInput, setlocationInput] = useState("");
   const [userLocation, setUserLocation] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState("");
-  console.log("photoUrl"), photoUrl;
 
   const getPhotoUrl = async (storageRef) => {
     try {
       const url = await getDownloadURL(storageRef);
-      console.log("url", url);
-      setPhotoUrl(url);
       return url;
-      // setPhotoUrl(url);
     } catch (error) {
       console.log(error);
       throw error;
@@ -67,17 +61,24 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
           // Fetch the file as a Blob
           const response = await fetch(photo);
           const fileBlob = await response.blob();
-          console.log("fileBlob", fileBlob);
 
           // Upload the file to Firebase Storage
           const storage = getStorage();
           const storageRef = ref(storage, fileBlob._data.name);
-          // console.log("storageRef", storageRef);
-          setPhotoUrl(storageRef);
 
           await uploadBytes(storageRef, fileBlob);
           console.log("Uploaded!");
-          await getPhotoUrl(storageRef);
+
+          const photoUrl = await getPhotoUrl(storageRef);
+
+          dispatch(
+            addPost({
+              name,
+              locCoords: coords,
+              photo: photoUrl,
+              locationInput,
+            })
+          );
         } catch (error) {
           console.error("Error uploading file:", error);
           throw error;
@@ -86,17 +87,8 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
 
       await uploadFileToFirebaseStorage();
 
-      dispatch(
-        addPost({
-          name,
-          locCoords: coords,
-          photo: photoUrl,
-          locationInput,
-        })
-      );
-
-      // clearInputs();
-      // return goToPostsScren();
+      clearInputs();
+      return goToPostsScren();
     } catch (error) {
       console.log(error);
       throw error;

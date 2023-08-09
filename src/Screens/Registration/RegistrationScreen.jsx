@@ -23,15 +23,15 @@ import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 
 import styles from "./RegistrationStyles";
 
-import { registerUser } from "../../redux/api-operations";
+import { registerUser, redirectingUser } from "../../redux/api-operations";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader } from "../../Loader/Loader";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const RegistrationScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isRefreshing = useSelector((state) => state.auth.isRefreshing);
-  const isLogged = useSelector((state) => state.auth.isLogged);
 
   const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
@@ -45,11 +45,17 @@ const RegistrationScreen = ({ navigation }) => {
   const [input2Focused, setInput2Focused] = useState(false);
   const [input3Focused, setInput3Focused] = useState(false);
 
+  const auth = getAuth();
+
   useEffect(() => {
-    if (isLogged) {
-      navigation.navigate("Home");
-      return;
-    }
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is already logged");
+        dispatch(redirectingUser(navigation));
+      } else {
+        console.log("User is not logged");
+      }
+    });
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",

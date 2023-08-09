@@ -16,7 +16,6 @@ import { postsSlice } from "./slices/postsSlice";
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["token"],
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authSlice.reducer);
