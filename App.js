@@ -15,9 +15,9 @@ import Map from "./src/Screens/Map/Map";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import store, { persistor } from "./src/redux/store";
-// import { useEffect } from "react";
-// import { useState } from "react";
-// import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+import { useEffect, useState } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const MainStack = createStackNavigator();
 
@@ -31,29 +31,31 @@ export default function App() {
     return null;
   }
 
-  // const auth = getAuth();
+  const auth = getAuth();
 
-  // const [status, setStatus] = useState(false);
-  // console.log("isUserLogged", isUserLogged);
+  const [isUserLogged, setLogStatus] = useState(false);
+  console.log("isUserLogged", isUserLogged);
 
-  // useEffect(() => {
-  //   const isLogged = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       console.log("User is already logged");
-  //       setStatus(true);
-  //     } else {
-  //       console.log("User is not logged");
-  //       setStatus(false);
-  //     }
-  //   });
-  //   isLogged();
-  // }, []);
+  useEffect(() => {
+    const isLogged = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is already logged");
+        setLogStatus(true);
+      } else {
+        console.log("User is not logged");
+        setLogStatus(false);
+      }
+    });
+    isLogged();
+  }, []);
 
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <NavigationContainer>
-          <MainStack.Navigator initialRouteName={"Логін"}>
+          <MainStack.Navigator
+            initialRouteName={isUserLogged ? "Home" : "Логін"}
+          >
             <MainStack.Screen
               name="Реєстрація"
               component={RegistrationScreen}

@@ -26,7 +26,7 @@ import styles from "./RegistrationStyles";
 import { registerUser, redirectingUser } from "../../redux/api-operations";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader } from "../../Loader/Loader";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+// import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const RegistrationScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -45,17 +45,17 @@ const RegistrationScreen = ({ navigation }) => {
   const [input2Focused, setInput2Focused] = useState(false);
   const [input3Focused, setInput3Focused] = useState(false);
 
-  const auth = getAuth();
+  // const auth = getAuth();
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("User is already logged");
-        dispatch(redirectingUser(navigation));
-      } else {
-        console.log("User is not logged");
-      }
-    });
+    // onAuthStateChanged(auth, (user) => {
+    //   if (user) {
+    //     console.log("User is already logged");
+    //     dispatch(redirectingUser(navigation));
+    //   } else {
+    //     console.log("User is not logged");
+    //   }
+    // });
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
