@@ -19,7 +19,7 @@ import LogoImage from "../../../assets/PhotoBg.png";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, redirectingUser } from "../../redux/api-operations";
 import { Loader } from "../../Loader/Loader";
-// import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -33,18 +33,15 @@ const LoginScreen = ({ navigation }) => {
   const [input1Focused, setInput1Focused] = useState(false);
   const [input2Focused, setInput2Focused] = useState(false);
 
-  // const auth = getAuth();
+  const auth = getAuth();
 
-  // useEffect(() => {
-  //   onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       console.log("User is already logged");
-  //       dispatch(redirectingUser({ navigation, user }));
-  //     } else {
-  //       console.log("User is not logged");
-  //     }
-  //   });
-  // }, []);
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        dispatch(redirectingUser({ navigation, user }));
+      }
+    });
+  }, []);
 
   const onLogin = () => {
     if (email === "") {

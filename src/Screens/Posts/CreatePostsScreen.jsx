@@ -37,24 +37,19 @@ const CreatePostsScreen = ({ navigation }) => {
       await MediaLibrary.requestPermissionsAsync();
 
       setHasPermission(status === "granted");
+      setPhoto(null);
 
       let locationPermission =
         await Location.requestForegroundPermissionsAsync();
       if (locationPermission.status !== "granted") {
         console.log("Permission to access location was denied");
       }
-
-      setPhoto(null);
     })();
   }, []);
 
-  if (hasPermission === null) {
+  if (hasPermission === null || hasPermission === false) {
     console.log("No permission");
     return;
-  }
-  if (hasPermission === false) {
-    console.log("No permission");
-    return <Text>No access to camera</Text>;
   }
 
   const discardPhoto = () => {

@@ -26,7 +26,9 @@ import styles from "./RegistrationStyles";
 import { registerUser, redirectingUser } from "../../redux/api-operations";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader } from "../../Loader/Loader";
-// import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+import * as ImagePicker from "expo-image-picker";
 
 const RegistrationScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -45,17 +47,19 @@ const RegistrationScreen = ({ navigation }) => {
   const [input2Focused, setInput2Focused] = useState(false);
   const [input3Focused, setInput3Focused] = useState(false);
 
-  // const auth = getAuth();
+  const [image, setImage] = useState(null);
+
+  const auth = getAuth();
 
   useEffect(() => {
-    // onAuthStateChanged(auth, (user) => {
-    //   if (user) {
-    //     console.log("User is already logged");
-    //     dispatch(redirectingUser(navigation));
-    //   } else {
-    //     console.log("User is not logged");
-    //   }
-    // });
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        dispatch(redirectingUser(navigation));
+      }
+    });
+
+    setChangeButton(true);
+    setImage(null);
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
@@ -72,7 +76,7 @@ const RegistrationScreen = ({ navigation }) => {
     };
   }, []);
 
-  const registerAccount = () => {
+  const registerAccount = async () => {
     if (login === "") {
       return Alert.alert("Please write your login");
     }
@@ -89,12 +93,15 @@ const RegistrationScreen = ({ navigation }) => {
       login: login.trim(),
       email: email.trim(),
       password: password.trim(),
+      image,
     };
 
     dispatch(registerUser({ userCredentials: trimmedCredentials, navigation }));
+
     setLogin("");
     setEmail("");
     setPassword("");
+    setImage(null);
   };
 
   const onKeyboardDidShow = () => {
@@ -135,8 +142,26 @@ const RegistrationScreen = ({ navigation }) => {
     setInput3Focused(false);
   };
 
-  const toggleButton = () => {
-    return setChangeButton(!changeButton);
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const toggleButton = async () => {
+    try {
+      await pickImage();
+      setChangeButton(!changeButton);
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   const showPassword = () => {
@@ -179,10 +204,14 @@ const RegistrationScreen = ({ navigation }) => {
                   backgroundColor: "#F6F6F6",
                 }}
               >
-                {!changeButton && (
+                {image && (
                   <Image
-                    source={ProfilePhoto}
-                    style={{ width: "100%", height: "100%" }}
+                    source={{ uri: image }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: 16,
+                    }}
                   />
                 )}
                 <TouchableOpacity

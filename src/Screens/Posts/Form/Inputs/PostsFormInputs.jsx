@@ -14,85 +14,64 @@ import MapPin from "../../../../../assets/map-pin.png";
 import TrashIcon from "../../../../../assets/trash-2.png";
 import * as Location from "expo-location";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addPost } from "../../../../redux/api-operations";
+import { auth } from "../../../../Firebase/config";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { publishPost } from "../../../../redux/api-operations";
 
 const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
   const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [locationInput, setlocationInput] = useState("");
-  const [userLocation, setUserLocation] = useState(null);
 
-  const getPhotoUrl = async (storageRef) => {
-    try {
-      const url = await getDownloadURL(storageRef);
-      return url;
-    } catch (error) {
-      console.log(error);
-      throw error;
+  // const state = useSelector((state) => state.posts);
+  // console.log("state", state);
+
+  // const getPhotoUrl = async (storageRef) => {
+  //   try {
+  //     const url = await getDownloadURL(storageRef);
+  //     return url;
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw error;
+  //   }
+  // };
+
+  const createPost = async () => {
+    if (name === "") {
+      Alert.alert("Please, fill the name field");
+      return;
     }
-  };
-
-  const publishPost = async () => {
-    try {
-      if (name === "") {
-        Alert.alert("Please, fill the name field");
-        return;
-      }
-      if (!photo) {
-        Alert.alert("Please, take a photo");
-        return;
-      }
-      if (locationInput === "") {
-        Alert.alert("Please, fill the location field");
-        return;
-      }
-
-      let locationCoords = await Location.getCurrentPositionAsync({});
-      const coords = {
-        latitude: locationCoords.coords.latitude,
-        longitude: locationCoords.coords.longitude,
-      };
-      setUserLocation(coords);
-
-      async function uploadFileToFirebaseStorage() {
-        try {
-          // Fetch the file as a Blob
-          const response = await fetch(photo);
-          const fileBlob = await response.blob();
-
-          // Upload the file to Firebase Storage
-          const storage = getStorage();
-          const storageRef = ref(storage, fileBlob._data.name);
-
-          await uploadBytes(storageRef, fileBlob);
-          console.log("Uploaded!");
-
-          const photoUrl = await getPhotoUrl(storageRef);
-
-          dispatch(
-            addPost({
-              name,
-              locCoords: coords,
-              photo: photoUrl,
-              locationInput,
-            })
-          );
-        } catch (error) {
-          console.error("Error uploading file:", error);
-          throw error;
-        }
-      }
-
-      await uploadFileToFirebaseStorage();
-
-      clearInputs();
-      return goToPostsScren();
-    } catch (error) {
-      console.log(error);
-      throw error;
+    if (!photo) {
+      Alert.alert("Please, take a photo");
+      return;
     }
+    if (locationInput === "") {
+      Alert.alert("Please, fill the location field");
+      return;
+    }
+
+    let locationCoords = await Location.getCurrentPositionAsync({});
+    const coords = {
+      latitude: locationCoords.coords.latitude,
+      longitude: locationCoords.coords.longitude,
+    };
+    if (locationCoords === {}) {
+      return Alert.alert("Coordinates weren't sent");
+    }
+
+    const data = {
+      name,
+      photo,
+      locationInput,
+      coords,
+      goToPostsScren,
+    };
+
+    dispatch(publishPost(data));
+
+    clearInputs();
   };
 
   const clearInputs = () => {
@@ -135,7 +114,7 @@ const PostsFormInputs = ({ photo, goToPostsScren, discardPhoto }) => {
             styles.button,
             name !== "" && locationInput !== "" && photo && styles.buttonActive,
           ]}
-          onPress={publishPost}
+          onPress={createPost}
         >
           <Text
             style={[

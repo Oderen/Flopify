@@ -13,56 +13,70 @@ import {
 } from "react-native";
 
 import ArrowIcon from "../../../assets/arrow-left.png";
-import SunSetImage from "../../../assets/sun-set.png";
 import SendIcon from "../../../assets/send-icon.png";
-import AvatarIcon from "../../../assets/avatar.png";
-import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 
-import { collection, getDocs } from "firebase/firestore";
+import { addComment } from "../../redux/api-operations";
+
+import { getDoc, doc } from "firebase/firestore";
 import { db } from "../../Firebase/config";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { auth } from "../../Firebase/config";
 
-const DATA = [
-  {
-    id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-    message:
-      "Really love your most recent photo. I’ve been trying to capture the same thing for a few months and would love some tips!",
-    photo: AvatarIcon,
-    messageTime: "09 червня, 2020 | 08:40",
-  },
-  {
-    id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-    message:
-      "A fast 50mm like f1.8 would help with the bokeh. I’ve been using primes as they tend to get a bit sharper images.",
-    photo: ProfilePhoto,
-    messageTime: "09 червня, 2020 | 09:14",
-  },
-  {
-    id: "58694a0f-3da1-471f-bd96-145571e29d72",
-    message: "Thank you! That was very helpful!",
-    photo: AvatarIcon,
-    messageTime: "09 червня, 2020 | 09:20",
-  },
-];
+import { resetPostId } from "../../redux/postReducer";
 
-const Item = ({ message, photo, messageTime }) => {
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
+import { Alert } from "react-native";
+import { Loader } from "../../Loader/Loader";
+
+const Item = ({ message, photo, messageTime, imageTitle, user }) => {
+  const currentUser = auth.currentUser.email;
+
   return (
     <TouchableWithoutFeedback style={{ width: "100%" }}>
       <View
         style={[
           styles.firstUserComment,
-          photo === ProfilePhoto && styles.secondUserComment,
+          user === currentUser && styles.secondUserComment,
         ]}
       >
-        <Image
-          source={photo}
-          style={{ width: 28, height: 28, borderRadius: 50 }}
-        />
+        {photo ? (
+          <Image
+            source={{
+              uri: photo,
+            }}
+            style={{ width: 28, height: 28, borderRadius: 50 }}
+          />
+        ) : (
+          <View
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#FFDAB9",
+              width: 28,
+              height: 28,
+              borderRadius: 50,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 15,
+                color: "black",
+                fontWeight: 500,
+                letterSpacing: 0.3,
+              }}
+            >
+              {imageTitle.slice(0, 1)}
+            </Text>
+          </View>
+        )}
 
         <View
           style={[
             styles.firstUserComment__box,
-            photo === ProfilePhoto && styles.secondUserComment__box,
+            user === currentUser && styles.secondUserComment__box,
           ]}
         >
           <Text
@@ -73,6 +87,7 @@ const Item = ({ message, photo, messageTime }) => {
               fontStyle: "normal",
               fontWeight: 400,
               lineHeight: 18,
+              marginLeft: 5,
             }}
           >
             {message}
@@ -80,7 +95,7 @@ const Item = ({ message, photo, messageTime }) => {
           <Text
             style={[
               styles.firstUserComment__messageTime,
-              photo === ProfilePhoto && styles.secondUserComment__messageTime,
+              user === currentUser && styles.secondUserComment__messageTime,
             ]}
           >
             {messageTime}
@@ -92,41 +107,81 @@ const Item = ({ message, photo, messageTime }) => {
 };
 
 const Comments = ({ navigation }) => {
-  const [comments, setComments] = useState([]);
+  const dispatch = useDispatch();
+
+  const [postData, setpostData] = useState({});
   const [commentText, setCommentText] = useState("");
 
-  const getDataFromFirestore = async () => {
+  const postID = useSelector((state) => state.postID.postId);
+  const userData = useSelector((state) => state.auth.user);
+  const isLoading = useSelector((state) => state.posts.isLoading);
+
+  const getPostData = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "posts"));
+      const docRef = doc(db, "posts", postID);
 
-      const dataArr = [];
-      snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
-      // console.log("dataArr", dataArr);
+      const docSnap = await getDoc(docRef);
 
-      return dataArr;
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+
+        return postData;
+      } else {
+        console.log("No such document!");
+      }
     } catch (error) {
-      console.log(error);
+      console.log("Error finding a document:", error.message);
       throw error;
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getDataFromFirestore();
-      console.log();
-      setComments(data);
+      const data = await getPostData();
+      setpostData(data);
     };
+
     fetchData();
-  }, []);
+  });
 
   const sendComment = () => {
-    console.log("Comment is sent");
+    if (commentText === "") {
+      Alert.alert("Please enter something to send a comment");
+    }
+    const user = auth.currentUser;
+
+    const options = {
+      timeZone: "Europe/Kiev",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: false,
+    };
+
+    const date = new Date().toLocaleDateString("uk-UA", options);
+    const formattedDate = date.replace(/[р.]/g, "").replace(",", "|");
+
+    const commentData = {
+      id: uuidv4(),
+      user: user.email,
+      userName: user.displayName,
+      message: commentText,
+      photo: userData.photo,
+      time: formattedDate,
+    };
+    dispatch(addComment({ commentData, postID }));
+    setCommentText("");
   };
 
   const goBack = () => {
+    dispatch(resetPostId());
     navigation.navigate("Home");
   };
-  return (
+  return isLoading ? (
+    <Loader />
+  ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.header}>
@@ -149,28 +204,34 @@ const Comments = ({ navigation }) => {
             />
           </TouchableOpacity>
         </View>
-        <View style={styles.main}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={SunSetImage}
-              style={{ width: "100%", height: "100%", borderRadius: 8 }}
+        {postData.comments && postData.photo ? (
+          <View style={styles.main}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: postData.photo }}
+                style={{ width: "100%", height: "100%", borderRadius: 8 }}
+              />
+            </View>
+            <FlatList
+              style={{ marginTop: 10, marginBottom: 5, width: "100%" }}
+              data={postData.comments}
+              renderItem={({ item }) => (
+                <Item
+                  key={item.id}
+                  message={item.message}
+                  photo={item.photo}
+                  messageTime={item.time}
+                  imageTitle={item.userName}
+                  user={item.user}
+                />
+              )}
             />
           </View>
-          <FlatList
-            style={{ marginTop: 32, marginBottom: 15, width: "100%" }}
-            data={DATA}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => (
-              <Item
-                key={item.id}
-                id={index}
-                message={item.message}
-                photo={item.photo}
-                messageTime={item.messageTime}
-              />
-            )}
-          />
-        </View>
+        ) : (
+          <View>
+            <Text>No required data</Text>
+          </View>
+        )}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
@@ -258,10 +319,9 @@ const styles = StyleSheet.create({
     padding: 16,
 
     width: "90%",
-    height: 103,
     marginLeft: 16,
     backgroundColor: "rgba(0, 0, 0, 0.03)",
-    borderRadius: 6,
+    borderRadius: 15,
   },
   firstUserComment__messageTime: {
     marginTop: 8,

@@ -12,39 +12,23 @@ import {
 import MessageIcon from "../../../assets/message-circle.png";
 import MapPin from "../../../assets/map-pin.png";
 
-import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 import LogOut from "../../../assets/log-out.png";
-
-import ForestImage from "../../../assets/Rectangle23.png";
-import sunSet from "../../../assets/sun-set.png";
-import home from "../../../assets/Home.png";
 
 import { useDispatch } from "react-redux";
 import { logOutUser } from "../../redux/api-operations";
 
-const DATA = [
-  {
-    id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-    title: "Ліс",
-    photo: ForestImage,
-    location: "Ukraine",
-  },
-  {
-    id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-    title: "Захід на Чорному морі",
-    photo: sunSet,
-    location: "Ukraine",
-  },
-  {
-    id: "58694a0f-3da1-471f-bd96-145571e29d72",
-    title: "Старий будиночок у Венеції",
-    photo: home,
-    location: "Italy",
-  },
-];
+import { useEffect } from "react";
 
-const Item = ({ title, photo, location, navigation }) => {
+import { addPostID } from "../../redux/postReducer";
+import { useSelector } from "react-redux";
+import { fetchPosts } from "../../redux/api-operations";
+import { Loader } from "../../Loader/Loader";
+
+const Item = ({ title, photo, location, navigation, id }) => {
+  const dispatch = useDispatch();
+
   const goToComments = () => {
+    dispatch(addPostID(id));
     navigation.navigate("Comments");
   };
 
@@ -62,13 +46,13 @@ const Item = ({ title, photo, location, navigation }) => {
           width: "100%",
           justifyContent: "center",
           alignItems: "center",
-          marginTop: 32,
+          marginTop: 30,
           marginBottom: 32,
         }}
       >
         <View style={{ width: "100%", height: 240 }}>
           <Image
-            source={photo}
+            source={{ uri: photo }}
             style={{ width: "100%", height: "100%", borderRadius: 8 }}
           />
           <Text
@@ -160,11 +144,22 @@ const Item = ({ title, photo, location, navigation }) => {
 const PostsScreen2 = ({ navigation }) => {
   const dispatch = useDispatch();
 
+  const posts = useSelector((state) => state.posts.items);
+  const isRefreshing = useSelector((state) => state.auth.isRefreshing);
+  const isLoading = useSelector((state) => state.posts.isLoading);
+  const userData = useSelector((state) => state.auth.user);
+
   const logOut = () => {
     dispatch(logOutUser(navigation));
   };
 
-  return (
+  useEffect(() => {
+    dispatch(fetchPosts());
+  }, []);
+
+  return isRefreshing && isLoading ? (
+    <Loader />
+  ) : (
     <SafeAreaView style={styles.container}>
       <View style={styles.upperBar}>
         <Text style={styles.upperBar__text}>Публікації</Text>
@@ -188,30 +183,58 @@ const PostsScreen2 = ({ navigation }) => {
       </View>
       <View style={styles.main}>
         <View style={styles.user}>
-          <TouchableOpacity style={styles.userphotoContainer}>
+          {userData.photo ? (
             <Image
-              source={ProfilePhoto}
+              source={{
+                uri: userData.photo,
+              }}
               style={styles.userphotoContainer__icon}
             />
-          </TouchableOpacity>
+          ) : (
+            <View
+              style={[
+                styles.userphotoContainer__icon,
+                {
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: userData.login ? "#FFDAB9" : "",
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: 40,
+                  color: "black",
+                  fontWeight: 500,
+                  letterSpacing: 0.3,
+                }}
+              >
+                {userData.login ? userData.login.slice(0, 1) : ""}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.userInfo}>
-            <Text style={styles.userInfo__name}>Natali Romanova</Text>
-            <Text style={styles.userInfo__email}>email@example.com</Text>
+            <Text style={styles.userInfo__name}>{userData.login}</Text>
+            <Text style={styles.userInfo__email}>{userData.email}</Text>
           </View>
         </View>
-        <FlatList
-          style={{ marginTop: 32, marginBottom: 43 }}
-          data={DATA}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Item
-              title={item.title}
-              photo={item.photo}
-              location={item.location}
-              navigation={navigation}
-            />
-          )}
-        />
+        {posts.length > 0 && (
+          <FlatList
+            style={{ marginTop: 15, marginBottom: 15 }}
+            data={posts}
+            renderItem={({ item }) => (
+              <Item
+                title={item.data.name}
+                photo={item.data.photo}
+                location={item.data.locationInput}
+                id={item.id}
+                navigation={navigation}
+              />
+            )}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -241,7 +264,6 @@ const styles = StyleSheet.create({
     color: "rgba(33, 33, 33, 1)",
     textAlign: "center",
     fontSize: 17,
-    fontFamily: "Roboto",
     fontWeight: 500,
     lineHeight: 22,
     letterSpacing: -0.408,
@@ -265,8 +287,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userphotoContainer__icon: {
-    width: "100%",
-    height: "100%",
+    width: 60,
+    height: 60,
+    borderRadius: 16,
   },
   userInfo: {
     marginLeft: 8,
@@ -274,14 +297,13 @@ const styles = StyleSheet.create({
 
   userInfo__name: {
     color: "#212121",
-    fontSize: 13,
-    fontFamily: "Roboto",
+    fontSize: 16,
+
     fontWeight: 700,
   },
 
   userInfo__email: {
     color: "rgba(33, 33, 33, 0.80)",
-    fontSize: 11,
-    fontFamily: "Roboto",
+    fontSize: 14,
   },
 });

@@ -9,13 +9,12 @@ import {
   SafeAreaView,
 } from "react-native";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import LogoImage from "../../../assets/PhotoBg.png";
 import PlusIcon from "../../../assets/add.png";
 
 import CloseButton from "../../../assets/closeButton.png";
-import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 
 import LogOut from "../../../assets/log-out.png";
 
@@ -24,14 +23,23 @@ import MapPin from "../../../assets/map-pin.png";
 import thumbsUp from "../../../assets/thumbs-up.png";
 
 import { useSelector } from "react-redux";
-import { logOutUser } from "../../redux/api-operations";
+import { logOutUser, addPhoto } from "../../redux/api-operations";
 import { useDispatch } from "react-redux";
 
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../Firebase/config";
+import { auth } from "../../Firebase/config";
 
-const Item = ({ title, photo, location, navigation }) => {
+import { addPostID } from "../../redux/postReducer";
+import * as ImagePicker from "expo-image-picker";
+
+import { resetPhoto } from "../../redux/slices/authSlice";
+import { Loader } from "../../Loader/Loader";
+import { fetchPosts } from "../../redux/api-operations";
+
+const Item = ({ title, photo, location, navigation, id }) => {
+  const dispatch = useDispatch();
+
   const goToComments = () => {
+    dispatch(addPostID(id));
     navigation.navigate("Comments");
   };
   return (
@@ -176,46 +184,60 @@ const Item = ({ title, photo, location, navigation }) => {
 
 const Profile = ({ navigation }) => {
   const dispatch = useDispatch();
-  const [changeButton, setChangeButton] = useState(true);
 
   const login = useSelector((state) => state.auth.user.login);
-  const [posts, setPosts] = useState([]);
+  const posts = useSelector((state) => state.posts.items);
+  const isRefreshing = useSelector((state) => state.auth.isRefreshing);
+  const isLoading = useSelector((state) => state.posts.isLoading);
+  const userData = useSelector((state) => state.auth.user);
 
-  const userData = useSelector((state) => state);
-  console.log("userData", userData);
+  useEffect(() => {
+    dispatch(fetchPosts());
+  }, []);
 
-  const getDataFromFirestore = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "posts"));
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-      const dataArr = [];
-      snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
-      // console.log("dataArr", dataArr);
-
-      return dataArr;
-    } catch (error) {
-      console.log(error);
-      throw error;
+    if (!result.canceled) {
+      dispatch(addPhoto(result.assets[0].uri));
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await getDataFromFirestore();
-      setPosts(data);
-    };
-    fetchData();
-  }, []);
+  const addNewAvatar = async () => {
+    try {
+      await pickImage();
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
-  const toggleButton = () => {
-    setChangeButton(!changeButton);
+  const resetAvatar = async () => {
+    try {
+      dispatch(resetPhoto());
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   const profileLogOut = () => {
     dispatch(logOutUser(navigation));
   };
 
-  return (
+  const user = auth.currentUser;
+  const userEmail = user?.email || "preventing error";
+
+  if (userEmail) {
+    filteredData = posts.filter((post) => post.data.user === userEmail);
+  }
+
+  return isRefreshing && isLoading ? (
+    <Loader />
+  ) : (
     <View style={styles.container}>
       <ImageBackground
         source={LogoImage}
@@ -229,7 +251,7 @@ const Profile = ({ navigation }) => {
 
             borderTopLeftRadius: 25,
             borderTopRightRadius: 25,
-            justifyContent: "center",
+            justifyContent: posts.length > 0 ? "center" : "",
             alignItems: "center",
           }}
         >
@@ -247,34 +269,77 @@ const Profile = ({ navigation }) => {
               backgroundColor: "#F6F6F6",
             }}
           >
-            {changeButton && (
+            {userData.photo ? (
               <Image
-                source={ProfilePhoto}
-                style={{ width: "100%", height: "100%" }}
+                source={{
+                  uri: userData.photo,
+                }}
+                style={{ width: "100%", height: "100%", borderRadius: 16 }}
               />
+            ) : (
+              <View
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#FFDAB9",
+                  borderRadius: 16,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 70,
+                    color: "black",
+                    fontWeight: 500,
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  {userData.login ? userData.login.slice(0, 1) : "U"}
+                </Text>
+              </View>
             )}
+            {userData.photo ? (
+              <TouchableOpacity
+                onPress={resetAvatar}
+                style={{
+                  position: "relative",
+                  top: "-35%",
 
-            <TouchableOpacity
-              onPress={toggleButton}
-              style={{
-                position: "relative",
-                top: !changeButton ? "67%" : "-33%",
+                  left: "90%",
+                  height: 25,
+                  width: 25,
+                  flexShrink: 0,
+                }}
+              >
+                <Image
+                  source={CloseButton}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={addNewAvatar}
+                style={{
+                  position: "relative",
+                  top: "-33%",
 
-                left: "90%",
-                height: 25,
-                width: 25,
-                flexShrink: 0,
-              }}
-            >
-              <Image
-                source={!changeButton ? PlusIcon : CloseButton}
-                style={{ width: "100%", height: "100%" }}
-              />
-            </TouchableOpacity>
+                  left: "90%",
+                  height: 25,
+                  width: 25,
+                  flexShrink: 0,
+                }}
+              >
+                <Image
+                  source={PlusIcon}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </TouchableOpacity>
+            )}
           </View>
           <Text
             style={{
-              fontFamily: "Roboto",
               fontSize: 30,
               color: "#212121",
               fontWeight: 500,
@@ -284,19 +349,21 @@ const Profile = ({ navigation }) => {
           >
             {login}
           </Text>
-          <FlatList
-            style={{ marginTop: 32, marginBottom: 43 }}
-            data={posts}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <Item
-                title={item.data.name}
-                photo={item.data.photo}
-                location={item.data.locationInput}
-                navigation={navigation}
-              />
-            )}
-          />
+          {posts.length > 0 && (
+            <FlatList
+              style={{ marginTop: 32, marginBottom: 43 }}
+              data={filteredData}
+              renderItem={({ item }) => (
+                <Item
+                  title={item.data.name}
+                  photo={item.data.photo}
+                  location={item.data.locationInput}
+                  navigation={navigation}
+                  id={item.id}
+                />
+              )}
+            />
+          )}
         </View>
       </ImageBackground>
     </View>
