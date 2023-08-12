@@ -118,9 +118,18 @@ export const logOutUser = createAsyncThunk(
 
 export const redirectingUser = createAsyncThunk(
   "auth/redirection",
-  async (data, { rejectWithValue }) => {
+  async (user, { rejectWithValue }) => {
     try {
-      const { displayName, email, accessToken, photoURL } = data.user;
+      const { displayName, email, accessToken, photoURL } = user;
+
+      if (!displayName) {
+        return {
+          displayName: "",
+          email: "",
+          accessToken: "",
+          image: "",
+        };
+      }
 
       const userData = {
         displayName,
@@ -128,10 +137,10 @@ export const redirectingUser = createAsyncThunk(
         accessToken,
         image: photoURL,
       };
-      data.navigation.navigate("Home");
+
       return userData;
     } catch (error) {
-      console.log(error);
+      console.log("Error redirectingUser", error.message);
       return rejectWithValue(error);
     }
   }

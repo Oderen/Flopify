@@ -19,14 +19,12 @@ import LogoImage from "../../../assets/PhotoBg.png";
 import PlusIcon from "../../../assets/add.png";
 
 import CloseButton from "../../../assets/closeButton.png";
-import ProfilePhoto from "../../../assets/ProfilePhoto.png";
 
 import styles from "./RegistrationStyles";
 
-import { registerUser, redirectingUser } from "../../redux/api-operations";
+import { registerUser } from "../../redux/api-operations";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader } from "../../Loader/Loader";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import * as ImagePicker from "expo-image-picker";
 
@@ -49,15 +47,7 @@ const RegistrationScreen = ({ navigation }) => {
 
   const [image, setImage] = useState(null);
 
-  const auth = getAuth();
-
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        dispatch(redirectingUser(navigation));
-      }
-    });
-
     setChangeButton(true);
     setImage(null);
 
@@ -160,7 +150,7 @@ const RegistrationScreen = ({ navigation }) => {
       await pickImage();
       setChangeButton(!changeButton);
     } catch (error) {
-      console.log(error.message);
+      console.log("Erorr: ", error.message);
     }
   };
 

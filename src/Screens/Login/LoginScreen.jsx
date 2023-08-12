@@ -38,7 +38,8 @@ const LoginScreen = ({ navigation }) => {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        dispatch(redirectingUser({ navigation, user }));
+        dispatch(redirectingUser(user));
+        navigation.navigate("Home");
       }
     });
   }, []);
@@ -59,8 +60,8 @@ const LoginScreen = ({ navigation }) => {
 
     dispatch(loginUser({ userCredentials: trimmedCredentials, navigation }));
 
-    // setEmail("");
-    // setPassword("");
+    setEmail("");
+    setPassword("");
   };
 
   const handleInput1Focus = () => {
