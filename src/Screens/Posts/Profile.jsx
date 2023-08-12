@@ -19,6 +19,7 @@ import CloseButton from "../../../assets/closeButton.png";
 import LogOut from "../../../assets/log-out.png";
 
 import MessageIcon from "../../../assets/message-circle.png";
+import ColoredMessageIcon from "../../../assets/colored-message-circle.png";
 import MapPin from "../../../assets/map-pin.png";
 import thumbsUp from "../../../assets/thumbs-up.png";
 
@@ -36,12 +37,17 @@ import { Loader } from "../../Loader/Loader";
 import { fetchPosts } from "../../redux/api-operations";
 import { Ionicons } from "@expo/vector-icons";
 
-const Item = ({ title, photo, location, navigation, id }) => {
+const Item = ({ title, photo, location, navigation, id, commentCount }) => {
   const dispatch = useDispatch();
 
   const goToComments = () => {
     dispatch(addPostID(id));
     navigation.navigate("Comments");
+  };
+
+  const goToMap = () => {
+    dispatch(addPostID(id));
+    navigation.navigate("Map");
   };
   return (
     <SafeAreaView
@@ -106,7 +112,7 @@ const Item = ({ title, photo, location, navigation, id }) => {
                   }}
                 >
                   <Image
-                    source={MessageIcon}
+                    source={commentCount > 0 ? ColoredMessageIcon : MessageIcon}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -121,7 +127,7 @@ const Item = ({ title, photo, location, navigation, id }) => {
                     fontFamily: "Roboto",
                   }}
                 >
-                  0
+                  {commentCount}
                 </Text>
               </View>
 
@@ -161,10 +167,10 @@ const Item = ({ title, photo, location, navigation, id }) => {
             </View>
 
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image
-                source={MapPin}
-                style={{ width: 24, height: 24, marginRight: 4 }}
-              />
+              <TouchableOpacity onPress={goToMap} style={{ marginRight: 4 }}>
+                <Image source={MapPin} style={{ width: 24, height: 24 }} />
+              </TouchableOpacity>
+
               <Text
                 style={{
                   color: "#212121",
@@ -187,6 +193,8 @@ const Profile = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isPostPublished = useSelector((state) => state.posts.isPostPublished);
+  const isIdReseted = useSelector((state) => state.postID.isIdReseted);
+
   const login = useSelector((state) => state.auth.user.login);
   const posts = useSelector((state) => state.posts.items);
   const isLoading = useSelector((state) => state.posts.isLoading);
@@ -194,7 +202,7 @@ const Profile = ({ navigation }) => {
 
   useEffect(() => {
     dispatch(fetchPosts());
-  }, [dispatch, isPostPublished]);
+  }, [dispatch, isPostPublished, isIdReseted]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -374,6 +382,7 @@ const Profile = ({ navigation }) => {
                   location={item.data.locationInput}
                   navigation={navigation}
                   id={item.id}
+                  commentCount={item.data.comments.length}
                 />
               )}
             />

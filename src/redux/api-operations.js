@@ -205,6 +205,28 @@ export const publishPost = createAsyncThunk(
   }
 );
 
+export const getPostData = createAsyncThunk(
+  "post/getData",
+  async (postID, { rejectWithValue }) => {
+    try {
+      const docRef = doc(db, "posts", postID);
+
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+
+        return postData;
+      } else {
+        console.log("No such document!");
+      }
+    } catch (error) {
+      console.log("Error: ", error.message);
+      throw rejectWithValue;
+    }
+  }
+);
+
 export const addComment = createAsyncThunk(
   "posts/addComment",
 

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import MessageIcon from "../../../assets/message-circle.png";
+import ColoredMessageIcon from "../../../assets/colored-message-circle.png";
 import MapPin from "../../../assets/map-pin.png";
 
 import LogOut from "../../../assets/log-out.png";
@@ -25,7 +26,7 @@ import { fetchPosts } from "../../redux/api-operations";
 import { Loader } from "../../Loader/Loader";
 import { Ionicons } from "@expo/vector-icons";
 
-const Item = ({ title, photo, location, navigation, id }) => {
+const Item = ({ title, photo, location, navigation, id, commentCount }) => {
   const dispatch = useDispatch();
 
   const goToComments = () => {
@@ -34,6 +35,7 @@ const Item = ({ title, photo, location, navigation, id }) => {
   };
 
   const goToMap = () => {
+    dispatch(addPostID(id));
     navigation.navigate("Map");
   };
   return (
@@ -94,11 +96,8 @@ const Item = ({ title, photo, location, navigation, id }) => {
                 }}
               >
                 <Image
-                  source={MessageIcon}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                  }}
+                  source={commentCount > 0 ? ColoredMessageIcon : MessageIcon}
+                  style={{ width: "100%", height: "100%" }}
                 />
               </TouchableOpacity>
 
@@ -110,7 +109,7 @@ const Item = ({ title, photo, location, navigation, id }) => {
                   marginRight: 49,
                 }}
               >
-                0
+                {commentCount}
               </Text>
             </View>
 
@@ -146,6 +145,8 @@ const PostsScreen2 = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isPostPublished = useSelector((state) => state.posts.isPostPublished);
+  const isIdReseted = useSelector((state) => state.postID.isIdReseted);
+
   const posts = useSelector((state) => state.posts.items);
   const isRefreshing = useSelector((state) => state.auth.isRefreshing);
   // const isLoading = useSelector((state) => state.posts.isLoading);
@@ -157,7 +158,7 @@ const PostsScreen2 = ({ navigation }) => {
 
   useEffect(() => {
     dispatch(fetchPosts());
-  }, [dispatch, isPostPublished]);
+  }, [dispatch, isPostPublished, isIdReseted]);
 
   const refreshPosts = () => {
     dispatch(fetchPosts());
@@ -242,6 +243,7 @@ const PostsScreen2 = ({ navigation }) => {
                 location={item.data.locationInput}
                 id={item.id}
                 navigation={navigation}
+                commentCount={item.data.comments.length}
               />
             )}
           />

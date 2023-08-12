@@ -1,12 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { publishPost, fetchPosts } from "../api-operations";
+import { publishPost, fetchPosts, getPostData } from "../api-operations";
 
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 
 export const postsSlice = createSlice({
   name: "posts",
-  initialState: { items: [], isLoading: false, isPostPublished: "" },
+  initialState: {
+    items: [],
+    isLoading: false,
+    isPostPublished: "",
+    locCoords: {},
+  },
   extraReducers: (builder) => {
     // FetchAll
     builder.addCase(fetchPosts.fulfilled, (state, action) => {
@@ -19,7 +24,18 @@ export const postsSlice = createSlice({
       builder.addCase(fetchPosts.pending, (state) => {
         state.isLoading = true;
       });
-    // AddPost
+    // getPostData
+    builder.addCase(getPostData.fulfilled, (state, action) => {
+      state.locCoords = action.payload.locCoords;
+      state.isLoading = false;
+    }),
+      builder.addCase(getPostData.rejected, (state) => {
+        state.isLoading = false;
+      }),
+      builder.addCase(getPostData.pending, (state) => {
+        state.isLoading = true;
+      });
+    // publishPost
     builder.addCase(publishPost.fulfilled, (state) => {
       state.isLoading = false;
       state.isPostPublished = uuidv4();
