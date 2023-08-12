@@ -23,6 +23,7 @@ import { addPostID } from "../../redux/postReducer";
 import { useSelector } from "react-redux";
 import { fetchPosts } from "../../redux/api-operations";
 import { Loader } from "../../Loader/Loader";
+import { Ionicons } from "@expo/vector-icons";
 
 const Item = ({ title, photo, location, navigation, id }) => {
   const dispatch = useDispatch();
@@ -146,7 +147,7 @@ const PostsScreen2 = ({ navigation }) => {
 
   const posts = useSelector((state) => state.posts.items);
   const isRefreshing = useSelector((state) => state.auth.isRefreshing);
-  const isLoading = useSelector((state) => state.posts.isLoading);
+  // const isLoading = useSelector((state) => state.posts.isLoading);
   const userData = useSelector((state) => state.auth.user);
 
   const logOut = () => {
@@ -157,7 +158,11 @@ const PostsScreen2 = ({ navigation }) => {
     dispatch(fetchPosts());
   }, []);
 
-  return isRefreshing && isLoading ? (
+  const refreshPosts = () => {
+    dispatch(fetchPosts());
+  };
+
+  return isRefreshing ? (
     <Loader />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -182,43 +187,48 @@ const PostsScreen2 = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.main}>
-        <View style={styles.user}>
-          {userData.photo ? (
-            <Image
-              source={{
-                uri: userData.photo,
-              }}
-              style={styles.userphotoContainer__icon}
-            />
-          ) : (
-            <View
-              style={[
-                styles.userphotoContainer__icon,
-                {
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: userData.login ? "#FFDAB9" : "",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  fontSize: 40,
-                  color: "black",
-                  fontWeight: 500,
-                  letterSpacing: 0.3,
+        <View style={styles.userContainer}>
+          <View style={styles.user}>
+            {userData.photo ? (
+              <Image
+                source={{
+                  uri: userData.photo,
                 }}
+                style={styles.userphotoContainer__icon}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.userphotoContainer__icon,
+                  {
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: userData.login ? "#FFDAB9" : "",
+                  },
+                ]}
               >
-                {userData.login ? userData.login.slice(0, 1) : ""}
-              </Text>
-            </View>
-          )}
+                <Text
+                  style={{
+                    fontSize: 40,
+                    color: "black",
+                    fontWeight: 500,
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  {userData.login ? userData.login.slice(0, 1) : ""}
+                </Text>
+              </View>
+            )}
 
-          <View style={styles.userInfo}>
-            <Text style={styles.userInfo__name}>{userData.login}</Text>
-            <Text style={styles.userInfo__email}>{userData.email}</Text>
+            <View style={styles.userInfo}>
+              <Text style={styles.userInfo__name}>{userData.login}</Text>
+              <Text style={styles.userInfo__email}>{userData.email}</Text>
+            </View>
           </View>
+          <TouchableOpacity onPress={refreshPosts}>
+            <Ionicons name={"refresh-outline"} size={24} color={"black"} />
+          </TouchableOpacity>
         </View>
         {posts.length > 0 && (
           <FlatList
@@ -274,10 +284,16 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 16,
   },
-  user: {
-    width: 171,
+  userContainer: {
+    width: "100%",
     height: 60,
     marginRight: "auto",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  user: {
+    width: 171,
     flexDirection: "row",
     alignItems: "center",
   },

@@ -59,8 +59,8 @@ const LoginScreen = ({ navigation }) => {
 
     dispatch(loginUser({ userCredentials: trimmedCredentials, navigation }));
 
-    setEmail("");
-    setPassword("");
+    // setEmail("");
+    // setPassword("");
   };
 
   const handleInput1Focus = () => {

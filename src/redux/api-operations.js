@@ -137,18 +137,22 @@ export const redirectingUser = createAsyncThunk(
   }
 );
 
-export const fetchPosts = createAsyncThunk("posts/fetchAll", async () => {
-  try {
-    const snapshot = await getDocs(collection(db, "posts"));
+export const fetchPosts = createAsyncThunk(
+  "posts/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const snapshot = await getDocs(collection(db, "posts"));
 
-    const dataArr = [];
-    snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
+      const dataArr = [];
+      snapshot.forEach((doc) => dataArr.push({ id: doc.id, data: doc.data() }));
 
-    return dataArr;
-  } catch (error) {
-    console.log("Error", error.message);
+      return dataArr;
+    } catch (error) {
+      console.log("Error", error.message);
+      throw rejectWithValue;
+    }
   }
-});
+);
 
 export const publishPost = createAsyncThunk(
   "post/add",
@@ -184,7 +188,6 @@ export const publishPost = createAsyncThunk(
       const docRef = await addDoc(collection(db, "posts"), postData);
       postData.id = docRef.id;
 
-      console.log("postData", postData);
       data.goToPostsScren();
     } catch (error) {
       console.error("Error adding document: ", e);
@@ -197,7 +200,6 @@ export const addComment = createAsyncThunk(
   "posts/addComment",
 
   async (data, { rejectWithValue }) => {
-    console.log("data", data);
     try {
       const docRef = doc(db, "posts", data.postID);
       const docSnap = await getDoc(docRef);
@@ -219,7 +221,6 @@ export const addComment = createAsyncThunk(
 );
 
 export const addPhoto = createAsyncThunk("user/addPhoto", async (photo) => {
-  console.log("photo", photo);
   try {
     await updateProfile(auth.currentUser, {
       photoURL: photo,

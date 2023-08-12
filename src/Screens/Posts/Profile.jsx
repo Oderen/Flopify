@@ -34,6 +34,7 @@ import * as ImagePicker from "expo-image-picker";
 import { resetPhoto } from "../../redux/slices/authSlice";
 import { Loader } from "../../Loader/Loader";
 import { fetchPosts } from "../../redux/api-operations";
+import { Ionicons } from "@expo/vector-icons";
 
 const Item = ({ title, photo, location, navigation, id }) => {
   const dispatch = useDispatch();
@@ -187,7 +188,6 @@ const Profile = ({ navigation }) => {
 
   const login = useSelector((state) => state.auth.user.login);
   const posts = useSelector((state) => state.posts.items);
-  const isRefreshing = useSelector((state) => state.auth.isRefreshing);
   const isLoading = useSelector((state) => state.posts.isLoading);
   const userData = useSelector((state) => state.auth.user);
 
@@ -228,6 +228,10 @@ const Profile = ({ navigation }) => {
     dispatch(logOutUser(navigation));
   };
 
+  const refreshPosts = () => {
+    dispatch(fetchPosts());
+  };
+
   const user = auth.currentUser;
   const userEmail = user?.email || "preventing error";
 
@@ -235,7 +239,10 @@ const Profile = ({ navigation }) => {
     filteredData = posts.filter((post) => post.data.user === userEmail);
   }
 
-  return isRefreshing && isLoading ? (
+  {
+  }
+
+  return isLoading ? (
     <Loader />
   ) : (
     <View style={styles.container}>
@@ -258,6 +265,15 @@ const Profile = ({ navigation }) => {
           <TouchableOpacity style={styles.logOutButton} onPress={profileLogOut}>
             <Image source={LogOut} width={24} height={24} />
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.refreshButton} onPress={refreshPosts}>
+            <Ionicons
+              name={"refresh-outline"}
+              size={24}
+              color={"rgba(189, 189, 189, 1)"}
+            />
+          </TouchableOpacity>
+
           <View
             style={{
               position: "absolute",
@@ -380,6 +396,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "4.5%",
     left: "90%",
+  },
+  refreshButton: {
+    position: "absolute",
+    top: "4.5%",
+    right: "90%",
   },
   input: {
     height: 50,
