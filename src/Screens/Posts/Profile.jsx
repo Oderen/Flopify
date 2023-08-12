@@ -186,6 +186,7 @@ const Item = ({ title, photo, location, navigation, id }) => {
 const Profile = ({ navigation }) => {
   const dispatch = useDispatch();
 
+  const isPostPublished = useSelector((state) => state.posts.isPostPublished);
   const login = useSelector((state) => state.auth.user.login);
   const posts = useSelector((state) => state.posts.items);
   const isLoading = useSelector((state) => state.posts.isLoading);
@@ -193,7 +194,7 @@ const Profile = ({ navigation }) => {
 
   useEffect(() => {
     dispatch(fetchPosts());
-  }, []);
+  }, [dispatch, isPostPublished]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -237,9 +238,6 @@ const Profile = ({ navigation }) => {
 
   if (userEmail) {
     filteredData = posts.filter((post) => post.data.user === userEmail);
-  }
-
-  {
   }
 
   return isLoading ? (
