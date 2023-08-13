@@ -1,5 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { publishPost, fetchPosts, getPostData } from "../api-operations";
+import {
+  publishPost,
+  fetchPosts,
+  getPostData,
+  addComment,
+} from "../api-operations";
 
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
@@ -10,6 +15,7 @@ export const postsSlice = createSlice({
     items: [],
     isLoading: false,
     isPostPublished: "",
+    isCommentSent: "",
     locCoords: {},
   },
   extraReducers: (builder) => {
@@ -45,6 +51,10 @@ export const postsSlice = createSlice({
       }),
       builder.addCase(publishPost.pending, (state) => {
         state.isLoading = true;
+      }),
+      // fdfs
+      builder.addCase(addComment.fulfilled, (state) => {
+        state.isCommentSent = uuidv4();
       });
   },
 });

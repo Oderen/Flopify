@@ -9,6 +9,7 @@ import { resetPostId } from "../../redux/postReducer";
 import { getPostData } from "../../redux/api-operations";
 
 import { Loader } from "../../Loader/Loader";
+import { reset } from "../../redux/api-operations";
 
 const Map = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -16,9 +17,10 @@ const Map = ({ navigation }) => {
   const postID = useSelector((state) => state.postID.postId);
 
   const isLoading = useSelector((state) => state.posts.isLoading);
+  const isUpdating = useSelector((state) => state.postID.isUpdating);
 
   const goBack = () => {
-    dispatch(resetPostId());
+    dispatch(reset());
     navigation.navigate("Home");
   };
 
@@ -26,7 +28,7 @@ const Map = ({ navigation }) => {
     dispatch(getPostData(postID));
   }, []);
 
-  return isLoading ? (
+  return isLoading || isUpdating ? (
     <Loader />
   ) : (
     <View style={styles.container}>

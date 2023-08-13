@@ -263,3 +263,12 @@ export const addPhoto = createAsyncThunk("user/addPhoto", async (photo) => {
     return rejectWithValue(error);
   }
 });
+
+export const reset = createAsyncThunk("id/reset", async () => {
+  try {
+    return;
+  } catch (error) {
+    console.log("Error", error.message);
+    throw error;
+  }
+});

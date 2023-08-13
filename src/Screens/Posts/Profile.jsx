@@ -193,7 +193,7 @@ const Profile = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isPostPublished = useSelector((state) => state.posts.isPostPublished);
-  const isIdReseted = useSelector((state) => state.postID.isIdReseted);
+  const isIdReseted = useSelector((state) => state.postID.postId);
 
   const login = useSelector((state) => state.auth.user.login);
   const posts = useSelector((state) => state.posts.items);

@@ -30,6 +30,8 @@ import { v4 as uuidv4 } from "uuid";
 import { Alert } from "react-native";
 import { Loader } from "../../Loader/Loader";
 
+import { reset } from "../../redux/api-operations";
+
 const Item = ({ message, photo, messageTime, imageTitle, user }) => {
   const currentUser = auth.currentUser.email;
 
@@ -113,8 +115,13 @@ const Comments = ({ navigation }) => {
   const [commentText, setCommentText] = useState("");
 
   const postID = useSelector((state) => state.postID.postId);
+
+  const isCommentSent = useSelector((state) => state.posts.isCommentSent);
+
   const userData = useSelector((state) => state.auth.user);
+
   const isLoading = useSelector((state) => state.posts.isLoading);
+  const isUpdating = useSelector((state) => state.postID.isUpdating);
 
   const getPostData = async () => {
     try {
@@ -135,14 +142,22 @@ const Comments = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+    try {
       const data = await getPostData();
-      setpostData(data);
-    };
 
-    fetchData();
-  });
+      setpostData(data);
+    } catch (error) {
+      console.log("error: ", error.message);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (postID !== "") {
+      fetchData();
+    }
+  }, [postID, isCommentSent]);
 
   const sendComment = () => {
     if (commentText === "") {
@@ -176,10 +191,11 @@ const Comments = ({ navigation }) => {
   };
 
   const goBack = () => {
-    dispatch(resetPostId());
+    dispatch(reset());
     navigation.navigate("Home");
   };
-  return isLoading ? (
+
+  return isLoading || isUpdating ? (
     <Loader />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

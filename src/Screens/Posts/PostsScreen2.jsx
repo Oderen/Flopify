@@ -145,7 +145,7 @@ const PostsScreen2 = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const isPostPublished = useSelector((state) => state.posts.isPostPublished);
-  const isIdReseted = useSelector((state) => state.postID.isIdReseted);
+  const isIdReseted = useSelector((state) => state.postID.postId);
 
   const posts = useSelector((state) => state.posts.items);
   const isRefreshing = useSelector((state) => state.auth.isRefreshing);
@@ -158,7 +158,7 @@ const PostsScreen2 = ({ navigation }) => {
 
   useEffect(() => {
     dispatch(fetchPosts());
-  }, [dispatch, isPostPublished, isIdReseted]);
+  }, [isPostPublished, isIdReseted]);
 
   const refreshPosts = () => {
     dispatch(fetchPosts());
